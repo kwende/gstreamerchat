@@ -23,6 +23,8 @@ public:
 	{
 		CLI::App app("Gstreamer audio chat app.");
 
+		app.require_subcommand(1, 1); 
+
 		CmdOptions ret = {};
 
 		auto server = app.add_subcommand("server"); 
@@ -39,9 +41,11 @@ public:
 			app.parse(argc, argv);
 
 			ret.IsServer = app.got_subcommand("server");
+			ret.IsValid = true; 
 		}
 		catch (const CLI::ParseError& e) {
 			std::cout << "Parameter error starting kStreamer: " << e.what() << std::endl;
+			ret.IsValid = false; 
 		}
 
 		return ret; 
