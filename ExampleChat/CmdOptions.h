@@ -32,8 +32,8 @@ public:
 		server->add_option("--srcport", ret.SourcePort, "The local port #")->required();
 
 		auto client = app.add_subcommand("client");
-		client->add_option("--dstip", ret.DestIp, "The destination IP.")->required();
-		client->add_option("--dstport", ret.DestPort, "The destination port #")->required();
+		client->add_option("--destip", ret.DestIp, "The destination IP.")->required();
+		client->add_option("--destport", ret.DestPort, "The destination port #")->required();
 		client->add_option("--srcip", ret.SourceIp, "The local IP.")->required();
 		client->add_option("--srcport", ret.SourcePort, "The local port #")->required();
 		
