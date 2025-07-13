@@ -37,14 +37,15 @@ int main(int argc, char** argv)
 	auto options = CmdOptions::Parse(argc, argv); 
     if (options.IsValid)
     {
-        ::SetEnvironmentVariableA("GST_DEBUG", "4"); 
+        //::SetEnvironmentVariableA("GST_DEBUG", "4"); 
 
         ::gst_init(&argc, &argv);
 
         Session session = { 0 }; 
 		session.loop = g_main_loop_new(NULL, FALSE);
 
-        session.pipeline = gst_element_factory_make("pipeline", "voice-chat-pipeline");
+        //session.pipeline = gst_element_factory_make("pipeline", "voice-chat-pipeline");
+		session.pipeline = gst_pipeline_new("voice-chat-pipeline");
 
         // Create elements for audio capture and echo cancellation
         session.audiosrc = gst_element_factory_make("wasapisrc", "audiosrc");
@@ -126,22 +127,22 @@ int main(int argc, char** argv)
 
         // Link capture to tee
         if (!gst_element_link_many(session.audiosrc, session.audioconvert_in, session.audioresample_in,
-            capsfilter, session.webrtcdsp, tee, NULL)) {
+            capsfilter, session.webrtcdsp, session.opusenc, session.rtpopuspay, session.udpsink, NULL)) {
             g_printerr("Failed to link capture to tee\n");
             return 0;
         }
 
-        // Link tee to send queue
-        if (!gst_element_link(tee, queue_send)) {
-            g_printerr("Failed to link tee to send queue\n");
-            return 0;
-        }
+        //// Link tee to send queue
+        //if (!gst_element_link(tee, queue_send)) {
+        //    g_printerr("Failed to link tee to send queue\n");
+        //    return 0;
+        //}
 
-        // Link send queue to network
-        if (!gst_element_link_many(queue_send, session.opusenc, session.rtpopuspay, session.udpsink, NULL)) {
-            g_printerr("Failed to link send chain\n");
-            return 0;
-        }
+        //// Link send queue to network
+        //if (!gst_element_link_many(queue_send, session.opusenc, session.rtpopuspay, session.udpsink, NULL)) {
+        //    g_printerr("Failed to link send chain\n");
+        //    return 0;
+        //}
 
         if (!gst_element_link_many(session.udpsrc, session.rtpjitterbuffer, session.rtpopusdepay, session.opusdec,
             session.audioconvert_out, session.audioresample_out,
