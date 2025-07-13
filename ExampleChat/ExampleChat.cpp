@@ -37,6 +37,8 @@ int main(int argc, char** argv)
 	auto options = CmdOptions::Parse(argc, argv); 
     if (options.IsValid)
     {
+        ::SetEnvironmentVariableA("GST_DEBUG", "4"); 
+
         ::gst_init(&argc, &argv);
 
         Session session = { 0 }; 
@@ -57,6 +59,11 @@ int main(int argc, char** argv)
 
         session.webrtcdsp = gst_element_factory_make("webrtcdsp", "echo_canceller");
 
+        // Add a tee element to split the audio
+        GstElement* tee = gst_element_factory_make("tee", "audio_tee");
+        GstElement* queue_send = gst_element_factory_make("queue", "queue_send");
+        GstElement* queue_local = gst_element_factory_make("queue", "queue_local");
+
         // Create elements for encoding and sending
         session.opusenc = gst_element_factory_make("opusenc", "opus_encoder");
         session.rtpopuspay = gst_element_factory_make("rtpopuspay", "rtp_payloader");
@@ -72,18 +79,21 @@ int main(int argc, char** argv)
         session.webrtcechoprobe = gst_element_factory_make("webrtcechoprobe", "echo_probe");
         session.audiosink = gst_element_factory_make("wasapisink", "audiosink");
 
-        if (!options.IsServer)
+        //if (!options.IsServer)
         {
             // is a network sink that sends UDP packets to the network
-            g_object_set(session.udpsink, "host", options.DestIp, "port", options.DestPort, NULL);
+            g_print("Sending to: %s:%d\n", options.DestIp.c_str(), options.DestPort);
+            g_print("Listening on port: %d\n", options.SourcePort);
+            
+            g_object_set(session.udpsink, "host", options.DestIp.c_str(), "port", options.DestPort, NULL);
             g_object_set(session.udpsrc, "port", options.SourcePort, NULL); 
-		}
-        else
-        {
-            // is a network sink that sends UDP packets to the network
-            g_object_set(session.udpsink, "host", options.SourceIp, "port", options.SourcePort, NULL);
-			g_object_set(session.udpsrc, "port", options.DestPort, NULL);
         }
+   //     else
+   //     {
+   //         // is a network sink that sends UDP packets to the network
+   //         g_object_set(session.udpsink, "host", options.SourceIp, "port", options.SourcePort, NULL);
+			//g_object_set(session.udpsrc, "port", options.DestPort, NULL);
+   //     }
 
         GstCaps* caps = gst_caps_from_string("application/x-rtp, media=audio, encoding-name=OPUS, payload=96");
         g_object_set(session.udpsrc, "caps", caps, NULL);
@@ -108,14 +118,28 @@ int main(int argc, char** argv)
 
         gst_bin_add_many(GST_BIN(session.pipeline),
             session.audiosrc, session.audioconvert_in, session.audioresample_in, capsfilter, session.webrtcdsp,
+            tee, queue_send, queue_local,
             session.opusenc, session.rtpopuspay, session.udpsink,
             session.udpsrc, session.rtpjitterbuffer, session.rtpopusdepay, session.opusdec,
             session.audioconvert_out, session.audioresample_out, session.webrtcechoprobe, session.audiosink,
             NULL);
 
+        // Link capture to tee
         if (!gst_element_link_many(session.audiosrc, session.audioconvert_in, session.audioresample_in,
-            capsfilter, session.webrtcdsp, session.opusenc, session.rtpopuspay, session.udpsink, NULL)) {
-            g_printerr("Failed to link capture chain\n");
+            capsfilter, session.webrtcdsp, tee, NULL)) {
+            g_printerr("Failed to link capture to tee\n");
+            return 0;
+        }
+
+        // Link tee to send queue
+        if (!gst_element_link(tee, queue_send)) {
+            g_printerr("Failed to link tee to send queue\n");
+            return 0;
+        }
+
+        // Link send queue to network
+        if (!gst_element_link_many(queue_send, session.opusenc, session.rtpopuspay, session.udpsink, NULL)) {
+            g_printerr("Failed to link send chain\n");
             return 0;
         }
 
