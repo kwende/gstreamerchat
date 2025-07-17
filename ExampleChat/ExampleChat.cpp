@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
         "audioconvert ! "
         "autoaudiosink "
 
-        "autoaudiosrc ! "
+        "audiotestsrc ! "
         "audioconvert ! "
         "audioresample ! "
         "opusenc bitrate=64000 ! "
