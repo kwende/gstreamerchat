@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
+#include <string>
 
 typedef struct {
     GstElement* pipeline;
@@ -88,14 +89,20 @@ int main(int argc, char* argv[]) {
     g_print("  Listening on port: %s\n", app.local_port);
     g_print("  Sending to: %s:%s\n", app.remote_host, app.remote_port);
 
+  //  std::string pipeline_cpp_str = "udpsrc port=" + std::string(app.local_port) +
+  //      " ! application/x-rtp,media=audio,clock-rate=48000,encoding-name=OPUS ! rtpopusdepay ! opusdec ! audioconvert ! audioresample ! autoaudiosink "
+		//"udpsink host=" + std::string(app.remote_host) + " port=" + std::string(app.remote_port);
+
     gchar* pipeline_str = g_strdup_printf(
         "autoaudiosrc ! "
         "audioconvert ! "
         "audioresample ! "
         "audio/x-raw,rate=48000,channels=1,format=S16LE ! "
-        "udpsink host=%s port=%s",
-        app.remote_host, app.remote_port
+        "udpsink host=172.17.6.5 port=8520 ",
+        "udpsrc port=8519 ! application/x-rtp,media=audio,clock-rate=48000,encoding-name=OPUS ! rtpopusdepay ! opusdec ! audioconvert ! audioresample ! autoaudiosink"
     );
+
+    //auto pipeline_str = g_strdup(pipeline_cpp_str.c_str());
 
 	g_print("Pipeline: %s\n", pipeline_str);
 
