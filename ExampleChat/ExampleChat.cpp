@@ -61,8 +61,8 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data) {
 }
 
 int main(int argc, char* argv[]) {
-    ::SetEnvironmentVariableA("GST_DEBUG", "3,udpsink:5,udpsrc:5");
-    ::SetEnvironmentVariableA("GST_DEBUG_DUMP_DOT_DIR", "c:/users/brush/desktop/test/");
+    ::SetEnvironmentVariableA("GST_DEBUG", "3");
+    //::SetEnvironmentVariableA("GST_DEBUG_DUMP_DOT_DIR", "c:/users/brush/desktop/test/");
 
     gst_init(&argc, &argv);
 
@@ -91,14 +91,16 @@ int main(int argc, char* argv[]) {
         "rtpjitterbuffer drop-on-latency=false ! "
         "rtpopusdepay ! "
         "opusdec ! "
+        "queue ! "
         "audioconvert ! "
         "autoaudiosink "
 
-        "audiotestsrc ! "
+        "directsoundsrc ! "
         "audioconvert ! "
         "audioresample ! "
         "opusenc bitrate=64000 ! "
         "rtpopuspay ! "
+        "application/x-rtp,media=audio,payload=96,encoding-name=OPUS ! "
         "udpsink host=%s port=%s async=false",
         app.local_port, app.remote_host, app.remote_port
     );
@@ -124,7 +126,7 @@ int main(int argc, char* argv[]) {
     guint bus_watch_id = gst_bus_add_watch(bus, bus_call, &app);
     gst_object_unref(bus);
 
-    GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(app.pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "pipeline");
+    //GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(app.pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "pipeline");
 
     // Start playing
     GstStateChangeReturn ret = gst_element_set_state(app.pipeline, GST_STATE_PLAYING);
