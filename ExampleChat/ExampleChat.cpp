@@ -88,10 +88,8 @@ int main(int argc, char* argv[]) {
     // Build the working pipeline string
     gchar* pipeline_str = g_strdup_printf(
         "udpsrc port=%s caps=\"application/x-rtp,media=audio,payload=96,encoding-name=OPUS\" ! "
-        "rtpjitterbuffer drop-on-latency=false ! "
         "rtpopusdepay ! "
         "opusdec ! "
-        "queue ! "
         "audioconvert ! "
         "autoaudiosink "
 
@@ -101,7 +99,7 @@ int main(int argc, char* argv[]) {
         "opusenc bitrate=64000 ! "
         "rtpopuspay ! "
         "application/x-rtp,media=audio,payload=96,encoding-name=OPUS ! "
-        "udpsink host=%s port=%s async=false",
+        "udpsink host=%s port=%s async=false sync=false",
         app.local_port, app.remote_host, app.remote_port
     );
     g_print("Pipeline string: %s\n", pipeline_str);
