@@ -102,7 +102,6 @@ int main(int argc, char* argv[]) {
         "udpsink host=%s port=%s async=false",
         app.local_port, app.remote_host, app.remote_port
     );
-
     g_print("Pipeline string: %s\n", pipeline_str);
 
     // Parse the pipeline from string
@@ -113,6 +112,7 @@ int main(int argc, char* argv[]) {
         g_printerr("Failed to parse pipeline: %s\n", error ? error->message : "Unknown error");
         if (error) g_error_free(error);
         return 1;
+
     }
 
     // Replace our empty pipeline with the parsed one
