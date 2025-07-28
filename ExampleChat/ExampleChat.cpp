@@ -1,4 +1,4 @@
-#include <gst/gst.h>
+﻿#include <gst/gst.h>
 #include <gst/audio/audio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,8 +29,11 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data) {
         gchar* debug;
         GError* error;
         gst_message_parse_error(msg, &error, &debug);
+        g_printerr("ERROR from %s: %s\n",
+            GST_OBJECT_NAME(GST_MESSAGE_SRC(msg)),
+            error->message);
+        g_printerr("Debug: %s\n", debug ? debug : "none");
         g_free(debug);
-        g_printerr("Error: %s\n", error->message);
         g_error_free(error);
         g_main_loop_quit(app->loop);
         break;
@@ -61,7 +64,8 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data) {
 }
 
 int main(int argc, char* argv[]) {
-    ::SetEnvironmentVariableA("GST_DEBUG", "3");
+    //::SetEnvironmentVariableA("GST_DEBUG", "3");
+    ::SetEnvironmentVariableA("GST_DEBUG", "webrtcdsp:7,webrtcechoprobe:7,caps*:6,link:5,rtp*:4");
     //::SetEnvironmentVariableA("GST_DEBUG_DUMP_DOT_DIR", "c:/users/brush/desktop/test/");
 
     gst_init(&argc, &argv);
@@ -85,23 +89,30 @@ int main(int argc, char* argv[]) {
     app.pipeline = gst_pipeline_new("audio-chat");
     GError* error = NULL;
 
-    // Build the working pipeline string
     gchar* pipeline_str = g_strdup_printf(
-        "udpsrc port=%s caps=\"application/x-rtp,media=audio,payload=96,encoding-name=OPUS\" ! "
+        /* ====== PLAYBACK (remote -> speakers) ====== */
+        "( udpsrc port=%s caps=\"application/x-rtp,media=audio,payload=96,encoding-name=OPUS\" ! "
         "rtpopusdepay ! "
         "opusdec ! "
         "audioconvert ! "
-        "autoaudiosink "
+        "audioresample ! "
+        "audio/x-raw,format=S16LE,rate=48000,channels=1 ! "  /* Force mono for probe */
+        "webrtcechoprobe name=echoprobe ! "
+        "audioconvert ! "  /* Convert back to whatever the sink needs */
+        "autoaudiosink ) "
 
-        "directsoundsrc ! "
+        /* ====== CAPTURE (mic -> network) ====== */
+        "( directsoundsrc ! "
         "audioconvert ! "
         "audioresample ! "
+        "audio/x-raw,format=S16LE,rate=48000,channels=1 ! "
+        "webrtcdsp probe=echoprobe echo-cancel=true noise-suppression=true gain-control=true ! "
         "opusenc bitrate=64000 ! "
         "rtpopuspay ! "
         "application/x-rtp,media=audio,payload=96,encoding-name=OPUS ! "
-        "udpsink host=%s port=%s async=false sync=false",
-        app.local_port, app.remote_host, app.remote_port
-    );
+        "udpsink host=%s port=%s async=false sync=false )",
+        app.local_port, app.remote_host, app.remote_port);
+
     g_print("Pipeline string: %s\n", pipeline_str);
 
     // Parse the pipeline from string

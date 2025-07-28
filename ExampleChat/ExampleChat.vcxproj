@@ -71,12 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>C:\Program Files\gstreamer\1.0\msvc_x86_64\lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>C:\Program Files\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\Program Files\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\Program Files\gstreamer\1.0\msvc_x86_64\include;C:\Program Files\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Program Files\gstreamer\1.0\msvc_x86_64\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Program Files\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;D:\Program Files\gstreamer\1.0\msvc_x86_64\include\glib-2.0;D:\Program Files\gstreamer\1.0\msvc_x86_64\include;D:\Program Files\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>C:\Program Files\gstreamer\1.0\msvc_x86_64\lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>C:\Program Files\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\Program Files\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\Program Files\gstreamer\1.0\msvc_x86_64\include;C:\Program Files\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Program Files\gstreamer\1.0\msvc_x86_64\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Program Files\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;D:\Program Files\gstreamer\1.0\msvc_x86_64\include\glib-2.0;D:\Program Files\gstreamer\1.0\msvc_x86_64\include;D:\Program Files\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
